@@ -10,6 +10,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Data
@@ -27,7 +29,8 @@ public class FileUpload {
     private String extension;
     @Column 
     private Date first_update_date;
-
+    @Column 
+    private int size;
 	public String getCode_info_file() {
 		return code_info_file;
 	}
@@ -64,11 +67,17 @@ public class FileUpload {
 	public void setFirst_update_date(Date first_update_date) {
 		this.first_update_date = first_update_date;
 	}
+	public int getSize() {
+		return size;
+	}
+	public void setSize(int size) {
+		this.size = size;
+	}
 	@Override
 	public String toString() {
 		return "FileUpload [code_info_file=" + code_info_file + ", id=" + id + ", filename=" + filename + ", filepath="
-				+ filepath + ", extension=" + extension + ", first_update_date=" + first_update_date + "]";
+				+ filepath + ", extension=" + extension + ", first_update_date=" + first_update_date + ", size=" + size
+				+ "]";
 	}
-    
 
 }

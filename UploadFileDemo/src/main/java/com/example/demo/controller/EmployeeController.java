@@ -12,36 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.model.FileUpload;
-import com.example.demo.service.impl.FileService;
-import com.example.demo.service.impl.FileServiceCustom;
-import com.example.demo.service.impl.FileServiceCustomImp;
-import com.example.demo.service.impl.InforFileService;
-import com.example.demo.service.impl.RoleService;
-import com.example.demo.service.impl.UserService;
-import com.example.demo.service.impl.UserServiceCustom;
-
+import com.example.demo.repository.FileRepository;
+import com.example.demo.repository.InfoFileRepository;
 @RestController
 @RequestMapping("/employee")
 public class EmployeeController {
-	//** User service custom */
-		@Autowired
-		private UserServiceCustom userServiceCustom;
-		//** User service */
-		@Autowired
-		private UserService userService;
-		//** User role service */
-		@Autowired
-		private RoleService roleService;
-		@Autowired
-		private FileService fileService;
-		@Autowired
-		private FileServiceCustom fileServiceCustom;
-		@Autowired
-		private FileServiceCustomImp customImp;
-		@Autowired
-		private InforFileService inforFileService;	
-		
-		private static int countFile;
+	
 //	  @PostMapping("/upload")
 //	    public String uploadFile(@RequestBody MultipartFile file,String infoCode) throws IllegalStateException, IOException {
 //	    

@@ -11,8 +11,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.example.demo.service.UserService;
 
-import com.example.demo.service.impl.UserServiceCustom;
 
 
 
@@ -21,7 +21,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	//** User service */
     @Autowired
-    UserServiceCustom userService;
+    private UserService userService;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {

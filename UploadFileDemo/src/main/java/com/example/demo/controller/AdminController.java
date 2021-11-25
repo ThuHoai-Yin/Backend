@@ -5,15 +5,9 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
-import javax.servlet.http.HttpSession;
-
-import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,19 +18,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.example.demo.model.CustomUserDetails;
+import com.example.demo.model.FileResponse;
 import com.example.demo.model.FileUpload;
 import com.example.demo.model.InfoFile;
 import com.example.demo.model.Role;
 import com.example.demo.model.User;
-import com.example.demo.service.impl.FileService;
-import com.example.demo.service.impl.FileServiceCustom;
-import com.example.demo.service.impl.FileServiceCustomImp;
-import com.example.demo.service.impl.InforFileService;
-import com.example.demo.service.impl.RoleService;
-import com.example.demo.service.impl.UserService;
-import com.example.demo.service.impl.UserServiceCustom;
+import com.example.demo.repository.FileRepository;
+import com.example.demo.repository.InfoFileRepository;
+import com.example.demo.repository.RoleRepository;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.service.FileService;
+import com.example.demo.service.UserService;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -46,19 +39,22 @@ public class AdminController {
 
 	//** User service custom */
 	@Autowired
-	private UserServiceCustom userServiceCustom;
+	private UserService userServiceCustom;
 	//** User service */
 	@Autowired
-	private UserService userService;
-	//** User role service */
+	private UserRepository userService;
+	//** Role service */
 	@Autowired
-	private RoleService roleService;
+	private RoleRepository roleService;
+	//** File service */
+	@Autowired
+	private FileRepository fileRepository;
+	//** File service custom */
 	@Autowired
 	private FileService fileService;
 	@Autowired
-	private FileServiceCustomImp customImp;
-	@Autowired
-	private InforFileService inforFileService;	
+	private InfoFileRepository infoFileRepository;
+	private final String infoCode="admin";
 	/**
 	 * Get all  users
 	 * 
@@ -124,12 +120,12 @@ public class AdminController {
     }
     
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestBody  MultipartFile fileUploaded) throws IllegalStateException, IOException {
+    public ResponseEntity<String> uploadFile(@RequestBody  MultipartFile file) throws IllegalStateException, IOException {
     
-    	String infoCode="admin";
+    	
     	FileUpload fileUp= new FileUpload();
-    	fileUp.setFilename(fileUploaded.getOriginalFilename());
-    	List<FileUpload> checkExist=  fileService.findByFilename(fileUp.getFilename());
+    	fileUp.setFilename(file.getOriginalFilename());
+    	List<FileUpload> checkExist=  fileRepository.findByFilename(fileUp.getFilename());
     	if((checkExist!=null )) {
     		for (FileUpload fileUpload : checkExist) {
     			if(fileUpload.getCode_info_file().equals(infoCode)) {
@@ -138,27 +134,27 @@ public class AdminController {
     		   
     	}
         fileUp.setCode_info_file(infoCode);
-    	fileUp.setExtension(customImp.getExtension(fileUploaded.getOriginalFilename()));
-    	fileUp.setId(customImp.createId("admin"));
-    	Optional<InfoFile> infoFile = inforFileService.findById(infoCode);
-    	fileUp.setFilepath(infoFile.get().getPath_file()+fileUploaded.getOriginalFilename());	
+    	fileUp.setExtension(fileService.getExtension(file.getOriginalFilename()));
+    	fileUp.setId(fileService.createId(infoCode));
+    	Optional<InfoFile> infoFile = infoFileRepository.findById(infoCode);
+    	fileUp.setFilepath(infoFile.get().getPath_file()+file.getOriginalFilename());	
     	fileUp.setFirst_update_date(new Date());
-    	fileService.save(fileUp);
-    	fileUploaded.transferTo(new File("D:\\Spring Boot\\FileServer\\"+fileUploaded.getOriginalFilename()));
+    	fileRepository.save(fileUp);
+    	System.out.println("Success");
     	return new ResponseEntity<>("File uploaded!", HttpStatus.OK);
    }
     
     @PostMapping("/overrideFile")
-    public ResponseEntity<String> overrideFile(@RequestBody  MultipartFile fileUploaded) throws IllegalStateException, IOException {
+    public ResponseEntity<String> overrideFile(@RequestBody  MultipartFile file) throws IllegalStateException, IOException {
     	FileUpload fileUp= new FileUpload();
-    	fileUp.setFilename(fileUploaded.getOriginalFilename());
-    	List<FileUpload> checkExist=  fileService.findByFilename(fileUp.getFilename());
+    	fileUp.setFilename(file.getOriginalFilename());
+    	List<FileUpload> checkExist=  fileRepository.findByFilename(fileUp.getFilename());
     	for (FileUpload fileUpload : checkExist) {
-    			if(fileUpload.getCode_info_file().equals("admin")) {
+    			if(fileUpload.getCode_info_file().equals(infoCode)) {
     			fileUp=fileUpload;
     			fileUp.setFirst_update_date(new Date());
-    			fileService.save(fileUp);
-    			fileUploaded.transferTo(new File("D:\\Spring Boot\\FileServer\\"+fileUploaded.getOriginalFilename()));
+    			fileRepository.save(fileUp);
+    			file.transferTo(new File("D:\\Spring Boot\\FileServer\\"+file.getOriginalFilename()));
     	    	return new ResponseEntity<>("Override file success!", HttpStatus.OK);
 			}
     	}
@@ -168,16 +164,11 @@ public class AdminController {
     
     @DeleteMapping("/deleteFile")
     public ResponseEntity<String> deleteFile(@RequestParam List<String> filename) throws IllegalStateException, IOException {
-    	for (String fileName : filename) {
-    		List<FileUpload> checkExist= fileService.findByFilename(fileName);
-        	for (FileUpload fileUpload : checkExist) {
-    			if(fileUpload.getCode_info_file().equals("admin")) {
-    			fileService.delete(fileUpload);
-    	    	return new ResponseEntity<>("Delete Success!", HttpStatus.OK);
-    		}
-		}
-	}	
-	return new ResponseEntity<>("Filename is not existed!", HttpStatus.BAD_REQUEST);
+    	return (ResponseEntity<String>) fileService.deleteFile(filename, infoCode);
    }
     
+    @GetMapping("/files")
+    public List<FileResponse> getListFile(){
+    	return fileService.getListFileByInfoCode(infoCode);
+    }
 }

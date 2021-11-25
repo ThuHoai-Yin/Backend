@@ -3,7 +3,8 @@ package com.example.demo.model;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import lombok.Data;
 @Entity
 @Data
@@ -13,11 +14,9 @@ public class InfoFile {
     @Column(name="max_size")
     private int maxSize;
     @Column
-    private String typeFile;
-    @Column
     private String extension;
-    @Column
-    private String path_file;
+    @Column(name="path_file")
+    private Path pathFile;
 	public String getId() {
 		return id;
 	}
@@ -30,29 +29,23 @@ public class InfoFile {
 	public void setMaxSize(int maxSize) {
 		this.maxSize = maxSize;
 	}
-	public String getTypeFile() {
-		return typeFile;
-	}
-	public void setTypeFile(String typeFile) {
-		this.typeFile = typeFile;
-	}
 	public String getExtension() {
 		return extension;
 	}
 	public void setExtension(String extension) {
 		this.extension = extension;
 	}
-	
-	public String getPath_file() {
-		return path_file;
+
+	public Path getPathFile() {
+		return pathFile;
 	}
-	public void setPath_file(String path_file) {
-		this.path_file = path_file;
+	public void setPathFile(Path pathFile) {
+		this.pathFile = pathFile;
 	}
 	@Override
 	public String toString() {
-		return "InfoFile [id=" + id + ", maxSize=" + maxSize + ", typeFile=" + typeFile + ", extension=" + extension
-				+ ", path_file=" + path_file + "]";
+		return "InfoFile [id=" + id + ", maxSize=" + maxSize  + ", extension=" + extension
+				+ ", path of file=" + pathFile + "]";
 	}
 	
     

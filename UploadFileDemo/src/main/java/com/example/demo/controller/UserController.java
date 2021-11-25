@@ -31,13 +31,13 @@ import com.example.demo.model.FileUpload;
 import com.example.demo.model.InfoFile;
 import com.example.demo.model.Role;
 import com.example.demo.model.User;
-import com.example.demo.service.impl.FileService;
-import com.example.demo.service.impl.FileServiceCustomImp;
-import com.example.demo.service.impl.InforFileService;
-import com.example.demo.service.impl.RoleService;
-import com.example.demo.service.impl.UserService;
-import com.example.demo.login.*;
+import com.example.demo.repository.FileRepository;
+import com.example.demo.repository.InfoFileRepository;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.model.*;
 import com.example.demo.security.*;
+import com.example.demo.service.FileService;
+
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping
@@ -45,10 +45,7 @@ public class UserController {
 
 	/** User service */
 	@Autowired
-	private UserService userService;
-	
-	@Autowired
-	private RoleService roleService;
+	private UserRepository userService;
 
 	// ** provide jwt token */
 	@Autowired
@@ -63,11 +60,12 @@ public class UserController {
 	PasswordEncoder passwordEncoder;
 
 	@Autowired
+	private FileRepository fileRepository;
+	@Autowired
 	private FileService fileService;
 	@Autowired
-	private FileServiceCustomImp customImp;
-	@Autowired
-	private InforFileService inforFileService;	
+	private InfoFileRepository infoFileRepository;
+
 	/**
 	 * Create a user
 	 * 
@@ -84,7 +82,7 @@ public class UserController {
 			throw new ValidationException("Id is existed!");
 
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
-		
+
 		return userService.save(user);
 
 	}
@@ -127,7 +125,7 @@ public class UserController {
 	@PostMapping("/login")
 	public String authenticateUser(@Validated @RequestBody LoginRequest loginRequest) {
 
-		//Authentication the information of user send request
+		// Authentication the information of user send request
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 		// Set information of authentication in Security Context
@@ -139,33 +137,35 @@ public class UserController {
 		return loginResponse.toString();
 
 	}
-	 @PostMapping("/upload")
-	    public ResponseEntity<String> uploadFile(@RequestBody MultipartFile file) throws IllegalStateException, IOException {
-	    
-	    	String infoCode="employee";
-	    	FileUpload fileUp= new FileUpload();
-	    	fileUp.setFilename(file.getOriginalFilename());
-	    	List<FileUpload> checkExist=  fileService.findByFilename(fileUp.getFilename());
-	    	if((!checkExist.isEmpty() )) {
-	    		
-	    		for (FileUpload fileUpload : checkExist) {
-	    			if(fileUpload.getCode_info_file().equals(infoCode)) 
-	    			{
-	    			return new ResponseEntity<>("Filename is existed!", HttpStatus.BAD_REQUEST);
-	    			}
+
+	@PostMapping("/upload")
+	public ResponseEntity<String> uploadFile(@RequestBody MultipartFile file)
+			throws IllegalStateException, IOException {
+		fileRepository.deleteAll();
+		String infoCode = "employee";
+		FileUpload fileUp = new FileUpload();
+		fileUp.setFilename(file.getOriginalFilename());
+		List<FileUpload> checkExist = fileRepository.findByFilename(fileUp.getFilename());
+		if ((!checkExist.isEmpty())) {
+
+			for (FileUpload fileUpload : checkExist) {
+				if (fileUpload.getCode_info_file().equals(infoCode)) {
+					return new ResponseEntity<>("Filename is existed!", HttpStatus.BAD_REQUEST);
 				}
-	    		   
-	    	}
-	    	Optional<InfoFile> infoFile = inforFileService.findById(infoCode);
-	    	fileUp.setFilepath(infoFile.get().getPath_file()+file.getOriginalFilename());	
-	        fileUp.setCode_info_file(infoCode);
-	    	fileUp.setExtension(customImp.getExtension(file.getOriginalFilename()));
-	    	fileUp.setId(customImp.createId("user"));
-	    	fileUp.setFirst_update_date(new Date());
-	    	fileService.save(fileUp);
-	    	file.transferTo(new File(infoFile.get().getPath_file()+"\\"+file.getOriginalFilename()));
-	    	return new ResponseEntity<>("File uploaded!", HttpStatus.OK);
-	   }
-	    
+			}
+
+		}
+		Optional<InfoFile> infoFile = infoFileRepository.findById(infoCode);
+		fileUp.setFilepath(infoFile.get().getPath_file() + file.getOriginalFilename());
+		fileUp.setCode_info_file(infoCode);
+		fileUp.setExtension(fileService.getExtension(file.getOriginalFilename()));
+		fileUp.setId(fileService.createId("user"));
+		fileUp.setFirst_update_date(new Date());
+		fileRepository.save(fileUp);
+		// file.transferTo(new
+		// File(infoFile.get().getPath_file()+"\\"+file.getOriginalFilename()));
+		System.out.println("Success");
+		return new ResponseEntity<>("File uploaded!", HttpStatus.OK);
+	}
 
 }
