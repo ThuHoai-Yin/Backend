@@ -13,10 +13,11 @@ public class InfoFile {
 	private String id;
     @Column(name="max_size")
     private int maxSize;
+    @Column(name="path_file")
+    private String pathFile;
     @Column
     private String extension;
-    @Column(name="path_file")
-    private Path pathFile;
+
 	public String getId() {
 		return id;
 	}
@@ -36,10 +37,11 @@ public class InfoFile {
 		this.extension = extension;
 	}
 
-	public Path getPathFile() {
+
+	public String getPathFile() {
 		return pathFile;
 	}
-	public void setPathFile(Path pathFile) {
+	public void setPathFile(String pathFile) {
 		this.pathFile = pathFile;
 	}
 	@Override

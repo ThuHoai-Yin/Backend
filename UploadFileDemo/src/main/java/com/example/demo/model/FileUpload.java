@@ -67,6 +67,8 @@ public class FileUpload {
 	public void setFirst_update_date(Date first_update_date) {
 		this.first_update_date = first_update_date;
 	}
+
+
 	public int getSize() {
 		return size;
 	}

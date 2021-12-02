@@ -1,5 +1,6 @@
 package com.example.demo.service.imp;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.demo.exception.ExceptionCustom;
 import com.example.demo.model.FileResponse;
 import com.example.demo.model.FileUpload;
 import com.example.demo.model.InfoFile;
@@ -65,7 +67,7 @@ public class FileServiceImp implements FileService {
 
 	@Override
 	public List<FileResponse> getListFileByInfoCode(String infoCode) {
-		List<FileUpload> findFile = fileRepository.findByCode_info_file(infoCode);
+		List<FileUpload> findFile = findByInfoCode(infoCode);
 		List<FileResponse> result = new ArrayList<>();
 		for (FileUpload fileUpload : findFile) {
 			result.add(new FileResponse(fileUpload.getFilename(), fileUpload.getExtension()));
@@ -74,30 +76,51 @@ public class FileServiceImp implements FileService {
 	}
 
 	@Override
-	public List<String> deleteFile(List<String> filename, String infoCode) {
-		for (String fileName : filename) {
-			List<FileUpload> checkExist = fileRepository.findByFilename(fileName);
-			for (FileUpload file : checkExist) {
-				// check filename có trong page ko
-				if (file.getCode_info_file().equals(infoCode)) {
-					fileRepository.delete(file);
-					filename.remove(file.getFilename());
-				}
+	public void deleteFile(String filename, String infoCode) {
+
+		List<FileUpload> checkExist = fileRepository.findByFilename(filename);
+		for (FileUpload file : checkExist) {
+			// check filename có trong page ko
+			if (file.getCode_info_file().equals(infoCode)) {
+				fileRepository.delete(file);
+				return;
 			}
 
 		}
-		return filename;
+		new ExceptionCustom("Can't delete file");
 	}
 
 	@Override
 	public boolean uploadFilẹ̣(MultipartFile file, String infoCode) throws IOException {
-		Optional<InfoFile> infoFile = infoFileRepository.findById(infoCode);
-		Path destinationFile = infoFile.get().getPathFile().resolve(Paths.get(file.getOriginalFilename())).normalize()
-				.toAbsolutePath();
-
-		try (InputStream inputStream = file.getInputStream()) {
-			Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
+		FileUpload fileUp = new FileUpload();
+		file.transferTo(new File("D:\\Spring Boot\\FileServer\\" + file.getOriginalFilename()));
+		fileUp.setFilename(file.getOriginalFilename());
+		List<FileUpload> checkExist = fileRepository.findByFilename(fileUp.getFilename());
+		if ((checkExist != null)) {
+			for (FileUpload fileUpload : checkExist) {
+				if (fileUpload.getCode_info_file().equals(infoCode)) throw new ExceptionCustom("File is exited!");
+			}
 		}
+		fileUp.setCode_info_file(infoCode);
+		fileUp.setExtension(getExtension(file.getOriginalFilename()));
+		fileUp.setId(createId( infoCode));
+	    InfoFile infoFile=infoFileRepository.getById(infoCode);
+		fileUp.setFilepath(infoFile.getPathFile() + file.getOriginalFilename());
+		fileRepository.save(fileUp);
 		return true;
 	}
+
+	@Override
+	public List<FileUpload> findByInfoCode(String infoCode) {
+		List<FileUpload> file = fileRepository.findAll();
+		List<FileUpload> result=new ArrayList<>();
+		for (FileUpload fileUpload : file) {
+			if (fileUpload.getCode_info_file().equals(infoCode)) {
+				result.add(fileUpload);
+			}
+		}
+		return result;
+	}
+
+
 }

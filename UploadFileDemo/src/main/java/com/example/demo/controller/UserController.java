@@ -1,11 +1,7 @@
 package com.example.demo.controller;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,17 +20,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.example.demo.model.CustomUserDetails;
-import com.example.demo.model.FileUpload;
-import com.example.demo.model.InfoFile;
-import com.example.demo.model.Role;
+import com.example.demo.model.LoginRequest;
+import com.example.demo.model.LoginResponse;
 import com.example.demo.model.User;
 import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.InfoFileRepository;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.model.*;
-import com.example.demo.security.*;
+import com.example.demo.security.JwtTokenProvider;
 import com.example.demo.service.FileService;
 
 @CrossOrigin(origins = "http://localhost:3000")
@@ -65,6 +57,7 @@ public class UserController {
 	private FileService fileService;
 	@Autowired
 	private InfoFileRepository infoFileRepository;
+	private final String infoCode = "employee";
 
 	/**
 	 * Create a user
@@ -141,30 +134,7 @@ public class UserController {
 	@PostMapping("/upload")
 	public ResponseEntity<String> uploadFile(@RequestBody MultipartFile file)
 			throws IllegalStateException, IOException {
-		fileRepository.deleteAll();
-		String infoCode = "employee";
-		FileUpload fileUp = new FileUpload();
-		fileUp.setFilename(file.getOriginalFilename());
-		List<FileUpload> checkExist = fileRepository.findByFilename(fileUp.getFilename());
-		if ((!checkExist.isEmpty())) {
-
-			for (FileUpload fileUpload : checkExist) {
-				if (fileUpload.getCode_info_file().equals(infoCode)) {
-					return new ResponseEntity<>("Filename is existed!", HttpStatus.BAD_REQUEST);
-				}
-			}
-
-		}
-		Optional<InfoFile> infoFile = infoFileRepository.findById(infoCode);
-		fileUp.setFilepath(infoFile.get().getPath_file() + file.getOriginalFilename());
-		fileUp.setCode_info_file(infoCode);
-		fileUp.setExtension(fileService.getExtension(file.getOriginalFilename()));
-		fileUp.setId(fileService.createId("user"));
-		fileUp.setFirst_update_date(new Date());
-		fileRepository.save(fileUp);
-		// file.transferTo(new
-		// File(infoFile.get().getPath_file()+"\\"+file.getOriginalFilename()));
-		System.out.println("Success");
+	    fileService.uploadFilẹ̣(file, infoCode);
 		return new ResponseEntity<>("File uploaded!", HttpStatus.OK);
 	}
 

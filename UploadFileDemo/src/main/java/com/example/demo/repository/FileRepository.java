@@ -9,5 +9,5 @@ import com.example.demo.model.FileUpload;
 @Repository
 public interface FileRepository extends JpaRepository<FileUpload, String>{
     public List<FileUpload> findByFilename(String filename);
-    public List<FileUpload> findByCode_info_file(String code_info_file);
+
 }
