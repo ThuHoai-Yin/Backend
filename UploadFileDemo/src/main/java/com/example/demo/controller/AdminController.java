@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -39,21 +40,27 @@ import com.example.demo.service.UserService;
 
 public class AdminController {
 
-	// ** User service custom */
+	/** User service custom */
 	@Autowired
 	private UserService userServiceCustom;
-	// ** User service */
+	
+	/** User service */
 	@Autowired
 	private UserRepository userService;
-	// ** Role service */
+	
+	/** Role service */
 	@Autowired
 	private RoleRepository roleService;
-	// ** File service */
+	
+	/** File service */
 	@Autowired
 	private FileRepository fileRepository;
-	// ** File service custom */
+	
+	/** File service custom */
 	@Autowired
 	private FileService fileService;
+	
+	/** Info code of page */
 	private final String infoCode = "admin";
 
 	/**
@@ -114,26 +121,46 @@ public class AdminController {
 	 */
 	@PostMapping("/updateRole")
 	public Role updateRole(@RequestParam int id, @RequestBody Role role) {
+		
 		Role findRole = roleService.getById(id);
 		findRole = role;
 		return roleService.save(findRole);
 
 	}
 
+	/**
+	 * Upload file
+	 * 
+	 * @param file
+	 * @return ResponseEntity<String>
+	 * @throws IllegalStateException
+	 * @throws IOException
+	 */
 	@PostMapping("/upload")
-	public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file)
+	public ResponseEntity<String> uploadFile(@RequestParam("file") List<MultipartFile> file)
 			throws IllegalStateException, IOException {
-		fileService.uploadFilẹ̣(file, infoCode);
+		
+		fileService.uploadFile(file, infoCode);
 		return new ResponseEntity<>("File uploaded!", HttpStatus.OK);
+		
 	}
 
+	/**
+	 * Override file has existed
+	 * 
+	 * @param file
+	 * @return ResponseEntity<String>
+	 * @throws IllegalStateException
+	 * @throws IOException
+	 */
 	@PostMapping("/overrideFile")
-	public ResponseEntity<String> overrideFile(@RequestBody MultipartFile file)
-			throws IllegalStateException, IOException {
+	public ResponseEntity<String> overrideFile(@RequestBody MultipartFile file) throws IllegalStateException, IOException {
+		
 		FileUpload fileUp = new FileUpload();
 		fileUp.setFilename(file.getOriginalFilename());
 		List<FileUpload> checkExist = fileRepository.findByFilename(fileUp.getFilename());
 		for (FileUpload fileUpload : checkExist) {
+			// check same info code, true:override file
 			if (fileUpload.getCode_info_file().equals(infoCode)) {
 				fileUp = fileUpload;
 				fileUp.setFirst_update_date(new Date());
@@ -142,18 +169,47 @@ public class AdminController {
 				return new ResponseEntity<>("Override file success!", HttpStatus.OK);
 			}
 		}
-
 		return new ResponseEntity<>("Don't find file to override!", HttpStatus.BAD_REQUEST);
+		
 	}
 
+	/**
+	 * Delete file by filename
+	 * 
+	 * @param filename
+	 * @return ResponseEntity<String>
+	 * @throws IllegalStateException
+	 * @throws IOException
+	 */
 	@DeleteMapping("/delete")
 	public ResponseEntity<String> deleteFile(@RequestParam("filename") String filename)
 			throws IllegalStateException, IOException {
+		
+		fileService.deleteFile(filename, infoCode);
 		return new ResponseEntity<>("Delete success!", HttpStatus.OK);
+		
 	}
 
+	/**
+	 * Get list uploaded file
+	 * 
+	 * @return List<FileResponse>
+	 */
 	@GetMapping("/files")
 	public List<FileResponse> getListFile() {
+		
 		return fileService.getListFileByInfoCode(infoCode);
+		
+	}
+
+	/**
+	 * Delete all file in page
+	 * 
+	 */
+	@DeleteMapping("/deleteAllFile")
+	public void deleteAllFile() {
+		
+		fileRepository.deleteAll();
+		
 	}
 }

@@ -25,6 +25,7 @@ import com.example.demo.model.InfoFile;
 import com.example.demo.repository.FileRepository;
 import com.example.demo.repository.InfoFileRepository;
 import com.example.demo.service.FileService;
+import com.example.demo.service.InfoFileService;
 
 @Service
 public class FileServiceImp implements FileService {
@@ -32,6 +33,8 @@ public class FileServiceImp implements FileService {
 	private FileRepository fileRepository;
 	@Autowired
 	private InfoFileRepository infoFileRepository;
+	@Autowired
+	private InfoFileService infoFileService;
 	private static int countFile;
 
 	@Override
@@ -59,11 +62,7 @@ public class FileServiceImp implements FileService {
 
 	}
 
-	@Override
-	public boolean checkExisted(FileUpload fileUpload) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	
 
 	@Override
 	public List<FileResponse> getListFileByInfoCode(String infoCode) {
@@ -90,25 +89,6 @@ public class FileServiceImp implements FileService {
 		new ExceptionCustom("Can't delete file");
 	}
 
-	@Override
-	public boolean uploadFilẹ̣(MultipartFile file, String infoCode) throws IOException {
-		FileUpload fileUp = new FileUpload();
-		file.transferTo(new File("D:\\Spring Boot\\FileServer\\" + file.getOriginalFilename()));
-		fileUp.setFilename(file.getOriginalFilename());
-		List<FileUpload> checkExist = fileRepository.findByFilename(fileUp.getFilename());
-		if ((checkExist != null)) {
-			for (FileUpload fileUpload : checkExist) {
-				if (fileUpload.getCode_info_file().equals(infoCode)) throw new ExceptionCustom("File is exited!");
-			}
-		}
-		fileUp.setCode_info_file(infoCode);
-		fileUp.setExtension(getExtension(file.getOriginalFilename()));
-		fileUp.setId(createId( infoCode));
-	    InfoFile infoFile=infoFileRepository.getById(infoCode);
-		fileUp.setFilepath(infoFile.getPathFile() + file.getOriginalFilename());
-		fileRepository.save(fileUp);
-		return true;
-	}
 
 	@Override
 	public List<FileUpload> findByInfoCode(String infoCode) {
@@ -121,6 +101,33 @@ public class FileServiceImp implements FileService {
 		}
 		return result;
 	}
+
+	@Override
+	public FileUpload convertMultipleToFileUpload(MultipartFile file, String infoCode) throws IllegalStateException, IOException {
+		FileUpload fileUp = new FileUpload();
+		file.transferTo(new File("D:\\Spring Boot\\FileServer\\" + file.getOriginalFilename()));
+		fileUp.setFilename(file.getOriginalFilename());
+		fileUp.setCode_info_file(infoCode);
+		fileUp.setExtension(getExtension(file.getOriginalFilename()));
+		fileUp.setId(createId( infoCode));
+		fileUp.setSize((int)file.getSize());
+		InfoFile infoFile=infoFileRepository.getById(infoCode);
+		infoFileService.checkFile(fileUp, infoFile);
+		fileUp.setFilepath(infoFile.getPathFile() + file.getOriginalFilename());
+		return fileUp;
+	}
+
+	@Override
+	public void uploadFile(List<MultipartFile> file, String infoCode) throws IllegalStateException, IOException {
+		List<FileUpload> fileSave = new ArrayList<>();
+		for (MultipartFile multipartFile : file) {
+			fileSave.add(convertMultipleToFileUpload(multipartFile, infoCode));
+		}
+		fileRepository.saveAll(fileSave);
+		
+	}
+
+	
 
 
 }

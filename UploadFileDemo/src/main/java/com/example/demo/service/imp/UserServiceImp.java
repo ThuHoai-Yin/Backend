@@ -15,10 +15,14 @@ import com.example.demo.service.UserService;
 @Service
 public class UserServiceImp implements UserService{
     
+	/* User Repository **/
 	@Autowired
 	private UserRepository userRepository;
+	
+	/* Role Repository **/
 	@Autowired
 	private RoleRepository  roleRepository;
+	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		 // Kiểm tra xem user có tồn tại trong database không?
@@ -30,6 +34,7 @@ public class UserServiceImp implements UserService{
     }
 
     // JWTAuthenticationFilter sẽ sử dụng hàm này
+	@Override
     @Transactional
     public UserDetails loadUserById(Long id) {
         User user = userRepository.findById(id).orElseThrow(
@@ -39,11 +44,7 @@ public class UserServiceImp implements UserService{
         return new CustomUserDetails(user,roleRepository.findById(user.getRoleId()));
     }
  
-    /** Add role to user
-     * @param user
-     * @param role
-     * @return
-     */
+    @Override
     public User addRole(User user, Role role) {
     	user.setRoleId(role.getId());
     	return user;

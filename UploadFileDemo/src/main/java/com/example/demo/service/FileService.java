@@ -12,11 +12,66 @@ import com.example.demo.model.InfoFile;
 
 @Service
 public interface FileService {
-          public String getExtension(String filename);
-          public String createId(String infoCode);
-          public boolean checkExisted(FileUpload fileUpload);
-          public List<FileUpload> findByInfoCode(String infoCode);
-          public List<FileResponse> getListFileByInfoCode(String infoCode);
-          public void deleteFile(String filename,String infoCode);
-          public boolean uploadFilẹ̣(MultipartFile file,String infoCode) throws IOException;
+
+	/**
+	 * Create extension for file
+	 * 
+	 * @param filename
+	 * @return String
+	 */
+	public String getExtension(String filename);
+
+	/**
+	 * Create id for file
+	 * 
+	 * @param infoCode
+	 * @return String
+	 */
+	public String createId(String infoCode);
+
+	/**
+	 * Find list file by info code
+	 * 
+	 * @param infoCode
+	 * @return List<FileUpload>
+	 */
+	public List<FileUpload> findByInfoCode(String infoCode);
+
+	/**
+	 * Get list file response by info code
+	 * 
+	 * @param infoCode
+	 * @return
+	 */
+	public List<FileResponse> getListFileByInfoCode(String infoCode);
+
+	/**
+	 * Delete file upload
+	 * 
+	 * @param filename
+	 * @param infoCode
+	 */
+	public void deleteFile(String filename, String infoCode);
+
+	/**
+	 * Convert multiplepart file to file upload model
+	 * 
+	 * @param file
+	 * @param infoCode
+	 * @return
+	 * @throws IllegalStateException
+	 * @throws IOException
+	 */
+	public FileUpload convertMultipleToFileUpload(MultipartFile file, String infoCode)
+			throws IllegalStateException, IOException;
+
+	/**
+	 * Upload file
+	 * 
+	 * @param file
+	 * @param infoCode
+	 * @throws IllegalStateException
+	 * @throws IOException
+	 */
+	public void uploadFile(List<MultipartFile> file, String infoCode) throws IllegalStateException, IOException;
 }

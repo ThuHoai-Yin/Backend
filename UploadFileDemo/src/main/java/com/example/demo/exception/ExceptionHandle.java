@@ -9,19 +9,42 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 @RestControllerAdvice
 public class ExceptionHandle {
 
+	/**
+	 * Handle max upload exception
+	 * 
+	 * @param exc
+	 * @return ResponseEntity<String>
+	 */
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	public ResponseEntity<String> handleMaxSizeException(MaxUploadSizeExceededException exc) {
 
-	  @ExceptionHandler(MaxUploadSizeExceededException.class)
-	  public ResponseEntity<String> handleMaxSizeException(MaxUploadSizeExceededException exc) {
-		    return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("File too large!");
-		  }
-	  @ExceptionHandler(ExceptionCustom.class)
-	  public ResponseEntity<String> handleExceptionCustom(ExceptionCustom exc) {
-		    return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(exc.getMessage());
-		  }
+		return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("File too large!");
 
-	  @ExceptionHandler(Exception.class)
-	    public ResponseEntity<String> handleUnwantedException(Exception e) {
-	        // Log lỗi ra và ẩn đi message thực sự (xem phần 3.2)
-	        e.printStackTrace();  // Thực tế người ta dùng logger
-	        return ResponseEntity.status(500).body("Unknow error");
-	    }}
+	}
+
+	/**
+	 * Handle custom exception
+	 * 
+	 * @param exc
+	 * @return ResponseEntity<String>
+	 */
+	@ExceptionHandler(ExceptionCustom.class)
+	public ResponseEntity<String> handleExceptionCustom(ExceptionCustom exc) {
+
+		return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(exc.getMessage());
+
+	}
+
+	/**
+	 * Handle other exception
+	 * 
+	 * @param e
+	 * @return ResponseEntity<String>
+	 */
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<String> handleUnwantedException(Exception e) {
+
+		return ResponseEntity.status(500).body("Unknow error");
+
+	}
+}
